@@ -1,0 +1,1749 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ペットの気持ち判断メーカー｜RUA PET LAB</title>
+
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+:root{
+    --purple:#755cff;
+    --pink:#ff62a5;
+    --blue:#54b9ff;
+    --text:#20202a;
+    --muted:#777;
+    --card:rgba(255,255,255,.92);
+}
+
+body{
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Noto Sans JP",
+        sans-serif;
+    color:var(--text);
+    min-height:100vh;
+    background:
+        radial-gradient(circle at 10% 10%,#fff4a8 0,transparent 28%),
+        radial-gradient(circle at 90% 20%,#ffd5e9 0,transparent 28%),
+        radial-gradient(circle at 50% 100%,#d9efff 0,transparent 30%),
+        #f7f8ff;
+}
+
+header{
+    padding:25px 18px 22px;
+    text-align:center;
+    background:rgba(255,255,255,.75);
+    backdrop-filter:blur(20px);
+    border-bottom:1px solid rgba(0,0,0,.06);
+    position:sticky;
+    top:0;
+    z-index:50;
+}
+
+.logo{
+    font-size:12px;
+    letter-spacing:3px;
+    font-weight:900;
+    color:#777;
+}
+
+header h1{
+    font-size:clamp(23px,5vw,36px);
+    margin:5px 0;
+}
+
+header p{
+    color:#777;
+    font-size:13px;
+}
+
+.container{
+    width:min(950px,94%);
+    margin:28px auto 70px;
+}
+
+.card{
+    background:var(--card);
+    border-radius:30px;
+    padding:30px;
+    box-shadow:0 25px 70px rgba(70,60,120,.12);
+    border:1px solid rgba(255,255,255,.9);
+}
+
+@media(max-width:600px){
+    .card{
+        padding:19px;
+        border-radius:23px;
+    }
+}
+
+.progress{
+    height:8px;
+    background:#ececf2;
+    border-radius:20px;
+    overflow:hidden;
+    margin-bottom:28px;
+}
+
+.progress-bar{
+    height:100%;
+    width:14%;
+    border-radius:20px;
+    background:linear-gradient(90deg,var(--purple),var(--pink));
+    transition:.45s;
+}
+
+.step{
+    display:none;
+    animation:show .4s ease;
+}
+
+.step.active{
+    display:block;
+}
+
+@keyframes show{
+    from{
+        opacity:0;
+        transform:translateY(15px);
+    }
+    to{
+        opacity:1;
+        transform:none;
+    }
+}
+
+.step-head{
+    display:flex;
+    align-items:center;
+    gap:13px;
+    margin-bottom:24px;
+}
+
+.step-num{
+    width:44px;
+    height:44px;
+    border-radius:15px;
+    display:grid;
+    place-items:center;
+    background:linear-gradient(135deg,var(--purple),var(--pink));
+    color:white;
+    font-weight:900;
+    flex:none;
+}
+
+.step-head h2{
+    font-size:23px;
+}
+
+.form-group{
+    margin-bottom:21px;
+}
+
+.form-group>label{
+    display:block;
+    font-weight:900;
+    margin-bottom:9px;
+}
+
+input[type="text"],
+select{
+    width:100%;
+    padding:14px 15px;
+    border:2px solid #ededf2;
+    border-radius:14px;
+    background:white;
+    font:inherit;
+    outline:none;
+}
+
+input:focus,
+select:focus{
+    border-color:#8069ff;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:12px;
+}
+
+@media(max-width:550px){
+    .grid{
+        grid-template-columns:1fr;
+    }
+}
+
+.option{
+    position:relative;
+}
+
+.option input{
+    position:absolute;
+    opacity:0;
+}
+
+.option label{
+    display:block;
+    padding:16px;
+    border:2px solid #ededf2;
+    border-radius:16px;
+    background:#fff;
+    cursor:pointer;
+    font-weight:800;
+    transition:.2s;
+}
+
+.option input:checked+label{
+    border-color:var(--purple);
+    background:#f3f0ff;
+    transform:translateY(-2px);
+}
+
+.camera{
+    position:relative;
+    background:#08090c;
+    border-radius:24px;
+    overflow:hidden;
+    aspect-ratio:16/10;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+#video{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.camera-message{
+    position:absolute;
+    left:15px;
+    right:15px;
+    bottom:15px;
+    padding:17px;
+    border-radius:17px;
+    background:rgba(0,0,0,.68);
+    color:white;
+    backdrop-filter:blur(10px);
+    text-align:center;
+    z-index:3;
+}
+
+.camera-message .instruction{
+    font-size:20px;
+    font-weight:900;
+}
+
+.camera-message .sub{
+    margin-top:5px;
+    font-size:12px;
+    color:#ddd;
+}
+
+.camera-top{
+    position:absolute;
+    top:14px;
+    left:14px;
+    right:14px;
+    display:flex;
+    justify-content:space-between;
+    z-index:4;
+}
+
+.live{
+    padding:7px 12px;
+    border-radius:20px;
+    background:rgba(255,50,80,.85);
+    color:white;
+    font-size:11px;
+    font-weight:900;
+}
+
+.timer{
+    padding:7px 12px;
+    border-radius:20px;
+    background:rgba(0,0,0,.6);
+    color:white;
+    font-size:12px;
+}
+
+.camera-controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:14px;
+}
+
+button{
+    border:none;
+    cursor:pointer;
+    font:inherit;
+    font-weight:900;
+    transition:.2s;
+}
+
+button:hover{
+    transform:translateY(-2px);
+}
+
+button:active{
+    transform:scale(.97);
+}
+
+.primary{
+    background:linear-gradient(135deg,var(--purple),#a34fff);
+    color:white;
+    padding:14px 21px;
+    border-radius:15px;
+    box-shadow:0 8px 22px rgba(117,92,255,.22);
+}
+
+.secondary{
+    background:#eeeef5;
+    color:#333;
+    padding:14px 21px;
+    border-radius:15px;
+}
+
+.pink{
+    background:linear-gradient(135deg,#ff609d,#ff7f70);
+    color:white;
+    padding:14px 21px;
+    border-radius:15px;
+}
+
+.navigation{
+    display:flex;
+    gap:12px;
+    margin-top:25px;
+}
+
+.navigation button{
+    flex:1;
+}
+
+.info{
+    padding:15px;
+    border-radius:16px;
+    background:#f6f4ff;
+    color:#5e557d;
+    font-size:13px;
+    line-height:1.7;
+    margin-top:15px;
+}
+
+.instruction-box{
+    text-align:center;
+    padding:28px 18px;
+    border-radius:22px;
+    background:linear-gradient(135deg,#f3f0ff,#fff0f7);
+    margin-bottom:20px;
+}
+
+.instruction-emoji{
+    font-size:55px;
+}
+
+.instruction-title{
+    font-size:24px;
+    font-weight:900;
+    margin-top:8px;
+}
+
+.instruction-desc{
+    color:#777;
+    margin-top:7px;
+    line-height:1.7;
+}
+
+.choice-list{
+    display:grid;
+    gap:12px;
+}
+
+.choice{
+    position:relative;
+}
+
+.choice input{
+    position:absolute;
+    opacity:0;
+}
+
+.choice label{
+    display:block;
+    padding:17px;
+    background:white;
+    border:2px solid #ededf2;
+    border-radius:16px;
+    cursor:pointer;
+    font-weight:700;
+}
+
+.choice input:checked+label{
+    border-color:var(--purple);
+    background:#f4f1ff;
+}
+
+.question-card{
+    background:#fafaff;
+    border-radius:20px;
+    padding:20px;
+    margin-bottom:16px;
+}
+
+.question-title{
+    font-weight:900;
+    margin-bottom:13px;
+    line-height:1.6;
+}
+
+.qnum{
+    color:var(--purple);
+}
+
+.result{
+    text-align:center;
+}
+
+.result-icon{
+    width:135px;
+    height:135px;
+    border-radius:50%;
+    margin:0 auto 20px;
+    display:grid;
+    place-items:center;
+    font-size:72px;
+    background:linear-gradient(135deg,#fff1a7,#ffd5e8);
+    box-shadow:0 18px 40px rgba(0,0,0,.1);
+    animation:pop .6s ease;
+}
+
+@keyframes pop{
+    0%{transform:scale(.4);opacity:0}
+    70%{transform:scale(1.08)}
+    100%{transform:scale(1);opacity:1}
+}
+
+.result h2{
+    font-size:32px;
+}
+
+.result-sub{
+    color:#777;
+    margin-top:7px;
+}
+
+.score{
+    margin:25px auto;
+    width:min(520px,100%);
+    text-align:left;
+}
+
+.score-head{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    font-weight:900;
+}
+
+.meter{
+    height:15px;
+    background:#ededf2;
+    border-radius:30px;
+    overflow:hidden;
+    margin-top:9px;
+}
+
+.meter-fill{
+    height:100%;
+    width:0;
+    background:linear-gradient(90deg,#58c9ff,#8165ff,#ff65a6);
+    transition:1.2s;
+}
+
+.result-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:13px;
+    margin-top:25px;
+    text-align:left;
+}
+
+@media(max-width:600px){
+    .result-grid{
+        grid-template-columns:1fr;
+    }
+}
+
+.result-box{
+    padding:18px;
+    background:#f8f8fc;
+    border-radius:18px;
+}
+
+.result-box strong{
+    display:block;
+    margin-bottom:8px;
+}
+
+.result-box p{
+    color:#666;
+    font-size:14px;
+    line-height:1.7;
+}
+
+.warning{
+    margin-top:20px;
+    padding:15px;
+    border-radius:16px;
+    background:#fff8df;
+    border:1px solid #ffe29a;
+    color:#715800;
+    font-size:12px;
+    line-height:1.7;
+    text-align:left;
+}
+
+footer{
+    text-align:center;
+    color:#888;
+    font-size:12px;
+    padding-bottom:35px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">RUA PET LAB</div>
+    <h1>🐾 ペットの気持ち判断メーカー</h1>
+    <p>カメラと質問から、今の気持ちを予想！</p>
+</header>
+
+<main class="container">
+
+<div class="card">
+
+<div class="progress">
+    <div class="progress-bar" id="progress"></div>
+</div>
+
+
+<!-- =========================
+     STEP 1
+========================= -->
+
+<section class="step active" id="step1">
+
+    <div class="step-head">
+        <div class="step-num">1</div>
+        <h2>まずはペットについて！</h2>
+    </div>
+
+    <div class="form-group">
+        <label>ペットの名前</label>
+        <input type="text" id="petName" placeholder="例：るあ">
+    </div>
+
+    <div class="form-group">
+        <label>種類</label>
+
+        <div class="grid">
+
+            <div class="option">
+                <input type="radio" name="type" id="dog" value="犬">
+                <label for="dog">🐶 犬</label>
+            </div>
+
+            <div class="option">
+                <input type="radio" name="type" id="cat" value="猫">
+                <label for="cat">🐱 猫</label>
+            </div>
+
+            <div class="option">
+                <input type="radio" name="type" id="rabbit" value="うさぎ">
+                <label for="rabbit">🐰 うさぎ</label>
+            </div>
+
+            <div class="option">
+                <input type="radio" name="type" id="other" value="その他">
+                <label for="other">🐾 その他</label>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>年齢</label>
+
+        <select id="age">
+            <option value="baby">子ども</option>
+            <option value="young">若い</option>
+            <option value="adult">成体</option>
+            <option value="senior">シニア</option>
+            <option value="unknown">分からない</option>
+        </select>
+    </div>
+
+    <div class="navigation">
+        <button class="primary" onclick="next()">次へ →</button>
+    </div>
+
+</section>
+
+
+<!-- =========================
+     STEP 2
+========================= -->
+
+<section class="step" id="step2">
+
+    <div class="step-head">
+        <div class="step-num">2</div>
+        <h2>普段の様子を教えて！</h2>
+    </div>
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q1.</span>
+            普段はどんな性格？
+        </div>
+
+        <select id="usualPersonality">
+            <option value="active">元気で活発</option>
+            <option value="calm">おとなしく落ち着いている</option>
+            <option value="friendly">人懐っこい</option>
+            <option value="cautious">警戒心が強い</option>
+            <option value="independent">マイペース</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q2.</span>
+            普段、飼い主さんには？
+        </div>
+
+        <select id="usualOwner">
+            <option value="close">よく近づいてくる</option>
+            <option value="sometimes">時々甘えてくる</option>
+            <option value="normal">普通</option>
+            <option value="independent">あまり近づかない</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q3.</span>
+            普段好きなものは？
+        </div>
+
+        <select id="favorite">
+            <option value="food">ごはん・おやつ</option>
+            <option value="toy">おもちゃ</option>
+            <option value="touch">なでてもらうこと</option>
+            <option value="walk">散歩・外に出ること</option>
+            <option value="sleep">寝ること</option>
+            <option value="other">その他</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q4.</span>
+            普段と比べて、今日はどう？
+        </div>
+
+        <select id="todayCompared">
+            <option value="same">いつも通り</option>
+            <option value="happy">いつもより元気</option>
+            <option value="quiet">いつもより静か</option>
+            <option value="active">いつもより活発</option>
+            <option value="nervous">いつもよりそわそわ</option>
+        </select>
+
+    </div>
+
+    <div class="navigation">
+        <button class="secondary" onclick="prev()">← 戻る</button>
+        <button class="primary" onclick="next()">カメラへ →</button>
+    </div>
+
+</section>
+
+
+<!-- =========================
+     STEP 3
+========================= -->
+
+<section class="step" id="step3">
+
+    <div class="step-head">
+        <div class="step-num">3</div>
+        <h2>カメラで観察しよう！</h2>
+    </div>
+
+    <div class="instruction-box">
+
+        <div class="instruction-emoji" id="instructionEmoji">
+            📷
+        </div>
+
+        <div class="instruction-title" id="instructionTitle">
+            カメラを起動してください
+        </div>
+
+        <div class="instruction-desc" id="instructionDesc">
+            ペットの様子を見ながら、いくつかの指示に答えていきます。
+        </div>
+
+    </div>
+
+    <div class="camera">
+
+        <video id="video" autoplay playsinline></video>
+
+        <div class="camera-top">
+            <span class="live">● LIVE</span>
+            <span class="timer" id="timer">準備中</span>
+        </div>
+
+        <div class="camera-message">
+
+            <div class="instruction" id="cameraInstruction">
+                カメラを起動してください
+            </div>
+
+            <div class="sub" id="cameraSub">
+                ペットが画面に入るようにしてください
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="camera-controls">
+
+        <button class="primary"
+                id="startCameraButton"
+                onclick="startCamera()">
+            📷 カメラを起動
+        </button>
+
+        <button class="pink"
+                id="nextObservation"
+                onclick="nextObservation()"
+                style="display:none;">
+            次の観察へ →
+        </button>
+
+    </div>
+
+    <div class="info">
+        📌 カメラ映像そのものをAIに送信して判定する機能ではありません。
+        画面に表示される指示に従って、飼い主さんがペットの様子を観察してください。
+    </div>
+
+</section>
+
+
+<!-- =========================
+     STEP 4
+========================= -->
+
+<section class="step" id="step4">
+
+    <div class="step-head">
+        <div class="step-num">4</div>
+        <h2>今の様子を教えて！</h2>
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q1.</span>
+            今、ペットの目は？
+        </div>
+
+        <select id="nowEyes">
+            <option value="normal">自然な感じ</option>
+            <option value="bright">生き生きしている</option>
+            <option value="sleepy">眠そう</option>
+            <option value="wide">大きく開いている</option>
+            <option value="unknown">分からない</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q2.</span>
+            耳は？
+        </div>
+
+        <select id="nowEars">
+            <option value="normal">自然な状態</option>
+            <option value="up">ピンと立っている</option>
+            <option value="back">後ろに下がっている</option>
+            <option value="move">よく動いている</option>
+            <option value="unknown">分からない</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q3.</span>
+            体の姿勢は？
+        </div>
+
+        <select id="posture">
+            <option value="relaxed">リラックスしている</option>
+            <option value="active">動き回っている</option>
+            <option value="alert">姿勢がピンとしている</option>
+            <option value="small">体を小さくしている</option>
+            <option value="sleep">寝ている</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q4.</span>
+            しっぽは？
+        </div>
+
+        <select id="tail">
+            <option value="normal">自然な状態</option>
+            <option value="wag">よく動かしている</option>
+            <option value="up">上がっている</option>
+            <option value="down">下がっている</option>
+            <option value="unknown">分からない</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q5.</span>
+            飼い主さんにどう反応する？
+        </div>
+
+        <select id="reaction">
+            <option value="come">近づいてくる</option>
+            <option value="look">こちらを見る</option>
+            <option value="play">遊ぼうとする</option>
+            <option value="ignore">あまり反応しない</option>
+            <option value="avoid">離れようとする</option>
+        </select>
+
+    </div>
+
+
+    <div class="question-card">
+
+        <div class="question-title">
+            <span class="qnum">Q6.</span>
+            今、気になるものは？
+        </div>
+
+        <select id="interest">
+            <option value="none">特になさそう</option>
+            <option value="food">ごはん・おやつ</option>
+            <option value="toy">おもちゃ</option>
+            <option value="sound">音</option>
+            <option value="person">人</option>
+            <option value="outside">外のもの</option>
+        </select>
+
+    </div>
+
+
+    <div class="navigation">
+        <button class="secondary" onclick="prev()">← 戻る</button>
+        <button class="primary" onclick="diagnose()">
+            🔮 総合診断！
+        </button>
+    </div>
+
+</section>
+
+
+<!-- =========================
+     STEP 5
+========================= -->
+
+<section class="step" id="step5">
+
+    <div class="result">
+
+        <div class="result-icon" id="resultIcon">
+            🐾
+        </div>
+
+        <h2 id="resultTitle">
+            診断中...
+        </h2>
+
+        <p class="result-sub" id="resultSub">
+            回答をまとめています
+        </p>
+
+
+        <div class="score">
+
+            <div class="score-head">
+                <span>今回の診断一致度</span>
+                <span id="scoreNumber">0%</span>
+            </div>
+
+            <div class="meter">
+                <div class="meter-fill" id="scoreBar"></div>
+            </div>
+
+        </div>
+
+
+        <div class="result-grid">
+
+            <div class="result-box">
+                <strong>💭 今の気持ち</strong>
+                <p id="emotionText"></p>
+            </div>
+
+            <div class="result-box">
+                <strong>🔎 判断ポイント</strong>
+                <p id="reasonText"></p>
+            </div>
+
+            <div class="result-box">
+                <strong>🏠 普段との比較</strong>
+                <p id="usualText"></p>
+            </div>
+
+            <div class="result-box">
+                <strong>💬 ペットからのひとこと</strong>
+                <p id="petMessage"></p>
+            </div>
+
+        </div>
+
+
+        <div class="warning">
+            ⚠️ このメーカーは、ペットの行動や飼い主さんの回答をもとに
+            「今どんな状態か」をエンタメとして予想するものです。
+            ペットの本当の気持ちを科学的に確定するものではありません。
+            食欲・元気・行動などに明らかな異変がある場合は、
+            診断結果ではなく獣医師などの専門家への相談を優先してください。
+        </div>
+
+
+        <div class="navigation">
+
+            <button class="secondary" onclick="restart()">
+                🔄 もう一度
+            </button>
+
+            <button class="primary" onclick="shareResult()">
+                📤 結果を共有
+            </button>
+
+        </div>
+
+    </div>
+
+</section>
+
+</div>
+</main>
+
+<footer>
+    RUA PET LAB<br>
+    Pet Emotion Maker
+</footer>
+
+
+<script>
+
+let currentStep = 1;
+let stream = null;
+
+const observations = [
+
+    {
+        emoji:"🐾",
+        title:"ペットをカメラに写してください",
+        desc:"顔だけではなく、できれば体全体が見えるようにしてみよう。",
+        camera:"ペットをカメラに写してください",
+        sub:"できるだけ自然な状態を観察してください"
+    },
+
+    {
+        emoji:"👀",
+        title:"ペットの目を見てみよう",
+        desc:"目が自然な状態なのか、何かに注目しているのか観察してみよう。",
+        camera:"ペットの目を観察してください",
+        sub:"無理に近づいたり、触ったりしなくてOK！"
+    },
+
+    {
+        emoji:"👂",
+        title:"耳の状態を見てみよう",
+        desc:"耳が自然な位置なのか、何かに反応しているのか確認してください。",
+        camera:"耳の状態を観察してください",
+        sub:"自然な状態のままで観察しましょう"
+    },
+
+    {
+        emoji:"🐕",
+        title:"体の姿勢を見てみよう",
+        desc:"リラックスしているのか、動き回っているのか観察してください。",
+        camera:"体の姿勢を観察してください",
+        sub:"ペットを動かそうとしないでください"
+    },
+
+    {
+        emoji:"🗣️",
+        title:"名前を呼んでみよう",
+        desc:"いつも呼んでいる声で、やさしく名前を呼んでみてください。",
+        camera:"やさしく名前を呼んでみてください",
+        sub:"反応を観察してください"
+    },
+
+    {
+        emoji:"❤️",
+        title:"少し待ってみよう",
+        desc:"何もせず数秒待って、ペットがどんな行動をするか見てみよう。",
+        camera:"そのまま数秒待ってください",
+        sub:"自然な行動を観察してください"
+    }
+
+];
+
+let observationIndex = 0;
+
+
+/* =========================
+   STEP
+========================= */
+
+function showStep(number){
+
+    document.querySelectorAll(".step").forEach(s=>{
+        s.classList.remove("active");
+    });
+
+    document.getElementById("step"+number)
+        .classList.add("active");
+
+    currentStep = number;
+
+    const total = 5;
+
+    document.getElementById("progress").style.width =
+        ((number / total) * 100) + "%";
+
+    window.scrollTo({
+        top:0,
+        behavior:"smooth"
+    });
+}
+
+
+function next(){
+
+    if(currentStep === 1){
+
+        const type =
+            document.querySelector('input[name="type"]:checked');
+
+        if(!type){
+            alert("ペットの種類を選んでね！");
+            return;
+        }
+    }
+
+    if(currentStep < 5){
+        showStep(currentStep+1);
+    }
+}
+
+
+function prev(){
+
+    if(currentStep > 1){
+        showStep(currentStep-1);
+    }
+}
+
+
+/* =========================
+   CAMERA
+========================= */
+
+async function startCamera(){
+
+    try{
+
+        if(!navigator.mediaDevices ||
+           !navigator.mediaDevices.getUserMedia){
+
+            alert(
+                "このブラウザではカメラを利用できません。\n" +
+                "HTTPSまたはlocalhostで開いてください。"
+            );
+
+            return;
+        }
+
+        stream = await navigator.mediaDevices.getUserMedia({
+
+            video:{
+                facingMode:"user",
+                width:{
+                    ideal:1280
+                },
+                height:{
+                    ideal:720
+                }
+            },
+
+            audio:false
+
+        });
+
+        const video =
+            document.getElementById("video");
+
+        video.srcObject = stream;
+
+        document.getElementById("startCameraButton")
+            .style.display = "none";
+
+        document.getElementById("nextObservation")
+            .style.display = "inline-block";
+
+        observationIndex = 0;
+
+        showObservation();
+
+    }catch(error){
+
+        console.error(error);
+
+        alert(
+            "カメラを起動できませんでした。\n\n" +
+            "ブラウザのカメラ使用許可を確認してください。"
+        );
+
+    }
+}
+
+
+function showObservation(){
+
+    const item = observations[observationIndex];
+
+    document.getElementById("instructionEmoji")
+        .textContent = item.emoji;
+
+    document.getElementById("instructionTitle")
+        .textContent = item.title;
+
+    document.getElementById("instructionDesc")
+        .textContent = item.desc;
+
+    document.getElementById("cameraInstruction")
+        .textContent = item.camera;
+
+    document.getElementById("cameraSub")
+        .textContent = item.sub;
+
+    document.getElementById("timer")
+        .textContent =
+        `${observationIndex+1} / ${observations.length}`;
+
+    document.getElementById("nextObservation")
+        .textContent =
+        observationIndex === observations.length-1
+        ? "観察終了 →"
+        : "次の観察へ →";
+
+}
+
+
+function nextObservation(){
+
+    if(observationIndex < observations.length-1){
+
+        observationIndex++;
+
+        showObservation();
+
+    }else{
+
+        stopCamera();
+
+        showStep(4);
+
+    }
+}
+
+
+function stopCamera(){
+
+    if(stream){
+
+        stream.getTracks().forEach(track=>{
+            track.stop();
+        });
+
+        stream = null;
+    }
+}
+
+
+/* =========================
+   DIAGNOSIS
+========================= */
+
+function getValue(id){
+    return document.getElementById(id).value;
+}
+
+
+function diagnose(){
+
+    const scores = {
+
+        happy:0,
+        relaxed:0,
+        sleepy:0,
+        hungry:0,
+        affectionate:0,
+        curious:0,
+        nervous:0
+
+    };
+
+    const reasons = [];
+
+
+    /* 現在の様子 */
+
+    const eyes = getValue("nowEyes");
+
+    if(eyes === "bright"){
+        scores.happy += 3;
+        reasons.push("目が生き生きしている");
+    }
+
+    if(eyes === "sleepy"){
+        scores.sleepy += 5;
+        scores.relaxed += 2;
+        reasons.push("眠そうな目");
+    }
+
+    if(eyes === "wide"){
+        scores.curious += 3;
+        scores.nervous += 1;
+        reasons.push("目を大きく開いている");
+    }
+
+
+    const ears = getValue("nowEars");
+
+    if(ears === "up"){
+        scores.curious += 3;
+        reasons.push("耳が立っている");
+    }
+
+    if(ears === "back"){
+        scores.nervous += 4;
+        reasons.push("耳が後ろに下がっている");
+    }
+
+    if(ears === "move"){
+        scores.curious += 2;
+    }
+
+
+    const posture = getValue("posture");
+
+    if(posture === "relaxed"){
+        scores.relaxed += 5;
+        reasons.push("体がリラックスしている");
+    }
+
+    if(posture === "active"){
+        scores.happy += 3;
+        scores.curious += 2;
+        reasons.push("活発に動いている");
+    }
+
+    if(posture === "alert"){
+        scores.curious += 4;
+        reasons.push("姿勢がピンとしている");
+    }
+
+    if(posture === "small"){
+        scores.nervous += 4;
+        reasons.push("体を小さくしている");
+    }
+
+    if(posture === "sleep"){
+        scores.sleepy += 6;
+        reasons.push("眠っている");
+    }
+
+
+    const tail = getValue("tail");
+
+    if(tail === "wag"){
+        scores.happy += 4;
+        scores.affectionate += 2;
+        reasons.push("しっぽをよく動かしている");
+    }
+
+    if(tail === "up"){
+        scores.curious += 2;
+    }
+
+    if(tail === "down"){
+        scores.nervous += 3;
+        reasons.push("しっぽが下がっている");
+    }
+
+
+    const reaction = getValue("reaction");
+
+    if(reaction === "come"){
+        scores.affectionate += 5;
+        reasons.push("飼い主さんに近づいてくる");
+    }
+
+    if(reaction === "look"){
+        scores.affectionate += 2;
+    }
+
+    if(reaction === "play"){
+        scores.happy += 4;
+        scores.affectionate += 2;
+        reasons.push("遊ぼうとしている");
+    }
+
+    if(reaction === "avoid"){
+        scores.nervous += 4;
+        reasons.push("距離を取ろうとしている");
+    }
+
+
+    const interest = getValue("interest");
+
+    if(interest === "food"){
+        scores.hungry += 6;
+        reasons.push("ごはん・おやつに関心がある");
+    }
+
+    if(interest === "toy"){
+        scores.happy += 4;
+        reasons.push("おもちゃに関心がある");
+    }
+
+    if(interest === "sound"){
+        scores.curious += 4;
+        reasons.push("音を気にしている");
+    }
+
+    if(interest === "person"){
+        scores.affectionate += 3;
+    }
+
+
+    /* 普段の様子 */
+
+    const personality =
+        getValue("usualPersonality");
+
+    if(personality === "active"){
+        scores.happy += 1;
+    }
+
+    if(personality === "friendly"){
+        scores.affectionate += 2;
+    }
+
+    if(personality === "cautious"){
+        scores.nervous += 1;
+    }
+
+
+    const owner =
+        getValue("usualOwner");
+
+    if(owner === "close"){
+        scores.affectionate += 2;
+    }
+
+
+    const favorite =
+        getValue("favorite");
+
+    if(favorite === "food"){
+        scores.hungry += 1;
+    }
+
+    if(favorite === "toy"){
+        scores.happy += 1;
+    }
+
+
+    const today =
+        getValue("todayCompared");
+
+    if(today === "happy"){
+        scores.happy += 3;
+    }
+
+    if(today === "quiet"){
+        scores.sleepy += 2;
+        scores.relaxed += 1;
+    }
+
+    if(today === "nervous"){
+        scores.nervous += 4;
+        reasons.push("普段よりそわそわしている");
+    }
+
+    if(today === "active"){
+        scores.happy += 2;
+    }
+
+
+    /* =========================
+       RESULT
+    ========================= */
+
+    const key =
+        Object.keys(scores).reduce(
+            (a,b)=>scores[a] > scores[b] ? a : b
+        );
+
+
+    const results = {
+
+        happy:{
+            icon:"😆",
+            title:"とってもごきげん！",
+            sub:"今は楽しく過ごしている可能性がありそう！",
+            emotion:"遊びたい・楽しい・一緒にいたい、という方向のサインが多めです。",
+            message:"「なんか今日、楽しいかも！もっと一緒に遊ぼうよ！」",
+            score:88
+        },
+
+        relaxed:{
+            icon:"😌",
+            title:"リラックス中",
+            sub:"かなり落ち着いて過ごしていそう。",
+            emotion:"安心して、ゆったりした時間を過ごしている可能性があります。",
+            message:"「ここなら安心。ちょっとのんびりさせて〜。」",
+            score:91
+        },
+
+        sleepy:{
+            icon:"😴",
+            title:"眠たいよ〜",
+            sub:"今は休憩モードかもしれません。",
+            emotion:"眠気や休みたい気分を示す回答が多くなりました。",
+            message:"「今は……寝る時間です……。」",
+            score:94
+        },
+
+        hungry:{
+            icon:"🍚",
+            title:"お腹すいたかも！",
+            sub:"ごはん・おやつへの関心が高そう。",
+            emotion:"食べ物への関心が今回の回答で目立っています。",
+            message:"「ところで、ごはんの時間まだですか？」",
+            score:86
+        },
+
+        affectionate:{
+            icon:"❤️",
+            title:"甘えたいかも！",
+            sub:"飼い主さんと一緒にいたい気分かもしれません。",
+            emotion:"飼い主さんへの反応から、親密さを求めている可能性があります。",
+            message:"「ねえねえ、ちょっとこっち来て〜！」",
+            score:89
+        },
+
+        curious:{
+            icon:"👀",
+            title:"何か気になる！",
+            sub:"周りをしっかり観察しているみたい。",
+            emotion:"周囲の音・もの・動きなどに興味を向けている可能性があります。",
+            message:"「あれ何？ちょっと気になるんだけど！」",
+            score:83
+        },
+
+        nervous:{
+            icon:"🥺",
+            title:"ちょっと警戒中かも",
+            sub:"何かを気にしている可能性があります。",
+            emotion:"普段より落ち着かなかったり、距離を取ったりする回答がありました。",
+            message:"「ちょっとだけ不安かも。そっとしておいてね。」",
+            score:76
+        }
+
+    };
+
+
+    const result = results[key];
+
+    const name =
+        document.getElementById("petName").value ||
+        "この子";
+
+
+    document.getElementById("resultIcon")
+        .textContent = result.icon;
+
+    document.getElementById("resultTitle")
+        .textContent = name + "は「" + result.title + "」";
+
+    document.getElementById("resultSub")
+        .textContent = result.sub;
+
+    document.getElementById("emotionText")
+        .textContent = result.emotion;
+
+    document.getElementById("reasonText")
+        .textContent =
+        reasons.length
+        ? reasons.slice(0,5).join("・") + "などを参考にしました。"
+        : "今回の回答全体を組み合わせて判断しました。";
+
+
+    let usualText = "";
+
+    const personalityText = {
+        active:"元気で活発",
+        calm:"おとなしく落ち着いている",
+        friendly:"人懐っこい",
+        cautious:"警戒心が強い",
+        independent:"マイペース"
+    };
+
+    usualText =
+        "普段は「" +
+        personalityText[personality] +
+        "」タイプ。";
+
+
+    if(today === "same"){
+        usualText +=
+            "今日は普段と大きく変わらないようです。";
+    }
+
+    if(today === "happy"){
+        usualText +=
+            "今日は普段より元気そうです。";
+    }
+
+    if(today === "quiet"){
+        usualText +=
+            "今日は普段より静かに過ごしています。";
+    }
+
+    if(today === "active"){
+        usualText +=
+            "今日は普段より活発です。";
+    }
+
+    if(today === "nervous"){
+        usualText +=
+            "今日は普段よりそわそわしているようです。";
+    }
+
+
+    document.getElementById("usualText")
+        .textContent = usualText;
+
+    document.getElementById("petMessage")
+        .textContent = result.message;
+
+
+    document.getElementById("scoreNumber")
+        .textContent = "0%";
+
+    document.getElementById("scoreBar")
+        .style.width = "0%";
+
+
+    showStep(5);
+
+
+    setTimeout(()=>{
+
+        document.getElementById("scoreBar")
+            .style.width = result.score + "%";
+
+        animateScore(result.score);
+
+    },300);
+
+}
+
+
+/* =========================
+   SCORE ANIMATION
+========================= */
+
+function animateScore(target){
+
+    let value = 0;
+
+    const interval = setInterval(()=>{
+
+        value++;
+
+        document.getElementById("scoreNumber")
+            .textContent = value + "%";
+
+        if(value >= target){
+            clearInterval(interval);
+        }
+
+    },15);
+
+}
+
+
+/* =========================
+   SHARE
+========================= */
+
+async function shareResult(){
+
+    const name =
+        document.getElementById("petName").value ||
+        "うちのペット";
+
+    const title =
+        document.getElementById("resultTitle").textContent;
+
+    const text =
+`🐾 ペットの気持ち判断メーカー
+
+${name}の診断結果
+${title}
+
+#ペットの気持ち判断メーカー
+#RUAPETLAB`;
+
+
+    if(navigator.share){
+
+        try{
+
+            await navigator.share({
+                title:"ペットの気持ち判断メーカー",
+                text:text
+            });
+
+        }catch(e){}
+
+    }else{
+
+        try{
+
+            await navigator.clipboard.writeText(text);
+
+            alert("診断結果をコピーしました！");
+
+        }catch(e){
+
+            alert(text);
+
+        }
+
+    }
+
+}
+
+
+/* =========================
+   RESTART
+========================= */
+
+function restart(){
+
+    stopCamera();
+
+    currentStep = 1;
+    observationIndex = 0;
+
+    document.getElementById("petName").value = "";
+
+    document.querySelectorAll(
+        'input[name="type"]'
+    ).forEach(input=>{
+        input.checked = false;
+    });
+
+    document.getElementById("startCameraButton")
+        .style.display = "inline-block";
+
+    document.getElementById("nextObservation")
+        .style.display = "none";
+
+    showStep(1);
+
+}
+
+
+/* =========================
+   CAMERA CLEANUP
+========================= */
+
+window.addEventListener(
+    "beforeunload",
+    stopCamera
+);
+
+</script>
+
+</body>
+</html>
